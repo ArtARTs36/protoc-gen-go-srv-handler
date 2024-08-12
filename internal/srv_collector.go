@@ -14,7 +14,11 @@ func NewSrvCollector() *SrvCollector {
 	return &SrvCollector{}
 }
 
-func (c *SrvCollector) Collect(file *protogen.File) (*Services, error) {
+type CollectOpts struct {
+	PkgNaming PkgNaming
+}
+
+func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services, error) {
 	services := &Services{
 		Services: []*Service{},
 	}
@@ -27,18 +31,20 @@ func (c *SrvCollector) Collect(file *protogen.File) (*Services, error) {
 	apiImportPkg.Alias = importPathParts[len(importPathParts)-1]
 
 	for _, service := range file.Services {
+		srvPkg := c.generatePackageName(service, opts)
+
 		srv := &Service{
-			PackageName:      strings.ToLower(service.GoName),
+			PackageName:      srvPkg,
 			Name:             service.GoName,
 			ApiImportPackage: apiImportPkg,
-			PbFileName:       strings.ToLower(service.GoName) + "/service.go",
+			PbFileName:       srvPkg + "/service.go",
 		}
 
 		for _, method := range service.Methods {
 			handler := &Handler{
 				Filename: fmt.Sprintf(
 					"%s/%s.go",
-					strings.ToLower(service.GoName),
+					srvPkg,
 					strings.ToLower(method.GoName),
 				),
 				MethodName:          method.GoName,
@@ -53,4 +59,12 @@ func (c *SrvCollector) Collect(file *protogen.File) (*Services, error) {
 	}
 
 	return services, nil
+}
+
+func (*SrvCollector) generatePackageName(srv *protogen.Service, opts CollectOpts) string {
+	if opts.PkgNaming == PkgNamingAsIs {
+		return strings.ToLower(srv.GoName)
+	}
+
+	return strings.TrimSuffix(strings.ToLower(srv.GoName), "service")
 }
