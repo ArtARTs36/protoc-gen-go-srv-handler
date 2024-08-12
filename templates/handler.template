@@ -1,0 +1,14 @@
+package {{.Service.PackageName}}
+
+import (
+    "context"
+
+    {{.Service.ApiImportPackage.Alias}} "{{.Service.ApiImportPackage.FullName}}"
+)
+
+func (srv *{{.Service.Name}}) {{.Handler.MethodName }} (
+    ctx context.Context,
+    req *{{.Service.ApiImportPackage.Alias}}.{{.Handler.InputMsgStructName }},
+) (*{{.Service.ApiImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}, error) {
+    return &{{.Service.ApiImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}{}, nil
+}

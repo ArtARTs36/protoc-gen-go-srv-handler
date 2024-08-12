@@ -1,0 +1,13 @@
+package {{.Service.PackageName}}
+
+import (
+    {{.Service.ApiImportPackage.Alias}} "{{.Service.ApiImportPackage.FullName}}"
+)
+
+type {{.Service.Name}} struct {
+    {{.Service.ApiImportPackage.Alias}}.Unimplemented{{.Service.Name}}Server
+}
+
+func NewService() *{{.Service.Name}} {
+    return &{{.Service.Name}}{}
+}
