@@ -7,4 +7,5 @@ test:
         --go-srv-handler_opt=out_dir=./srv \
         --go-srv-handler_opt=overwrite=true \
         --go-srv-handler_opt=pkg_naming=without_service_suffix \
+        --go-srv-handler_opt=srv_naming=just_service \
         userapi/*.proto

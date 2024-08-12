@@ -15,6 +15,7 @@ func NewSrvCollector() *SrvCollector {
 }
 
 type CollectOpts struct {
+	SrvNaming SrvNaming
 	PkgNaming PkgNaming
 }
 
@@ -35,7 +36,8 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 
 		srv := &Service{
 			PackageName:      srvPkg,
-			Name:             service.GoName,
+			Name:             c.generateServiceName(service, opts),
+			RpcName:          service.GoName,
 			ApiImportPackage: apiImportPkg,
 			PbFileName:       srvPkg + "/service.go",
 		}
@@ -67,4 +69,12 @@ func (*SrvCollector) generatePackageName(srv *protogen.Service, opts CollectOpts
 	}
 
 	return strings.TrimSuffix(strings.ToLower(srv.GoName), "service")
+}
+
+func (*SrvCollector) generateServiceName(srv *protogen.Service, opts CollectOpts) string {
+	if opts.SrvNaming == SrvNamingAsIs {
+		return srv.GoName
+	}
+
+	return "Service"
 }

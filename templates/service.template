@@ -5,7 +5,7 @@ import (
 )
 
 type {{.Service.Name}} struct {
-    {{.Service.ApiImportPackage.Alias}}.Unimplemented{{.Service.Name}}Server
+    {{.Service.ApiImportPackage.Alias}}.Unimplemented{{.Service.RpcName}}Server
 }
 
 func NewService() *{{.Service.Name}} {

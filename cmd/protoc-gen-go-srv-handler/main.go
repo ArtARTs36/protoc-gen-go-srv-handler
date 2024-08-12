@@ -15,6 +15,7 @@ func main() {
 	outDir := flags.String("out_dir", "", "Output directory for generated files")
 	overwrite := flags.Bool("overwrite", false, "Overwrite existing files")
 	pkgNamingVal := flags.String("pkg_naming", string(internal.PkgNamingAsIs), "Package naming: `as_is`, `without_service_suffix`")
+	srvNamingVal := flags.String("srv_naming", string(internal.SrvNamingAsIs), "Service naming: `as_is`, `just_service`")
 
 	protogen.Options{
 		ParamFunc: flags.Set,
@@ -24,6 +25,7 @@ func main() {
 		}
 
 		pkgNaming := internal.CreatePkgNaming(*pkgNamingVal)
+		srvNaming := internal.CreateSrvNaming(*srvNamingVal)
 
 		renderer, err := internal.NewRenderer()
 		if err != nil {
@@ -41,6 +43,7 @@ func main() {
 			pkgNaming:    pkgNaming,
 			srvCollector: internal.NewSrvCollector(),
 			renderer:     renderer,
+			srvNaming:    srvNaming,
 		}
 
 		for _, f := range gen.Files {
@@ -61,6 +64,7 @@ type command struct {
 	outputDir    string
 	overwrite    bool
 	pkgNaming    internal.PkgNaming
+	srvNaming    internal.SrvNaming
 	srvCollector *internal.SrvCollector
 	renderer     *internal.Renderer
 }
@@ -68,6 +72,7 @@ type command struct {
 func (c *command) gen(gen *protogen.Plugin, file *protogen.File) ([]*protogen.GeneratedFile, error) {
 	services, err := c.srvCollector.Collect(file, internal.CollectOpts{
 		PkgNaming: c.pkgNaming,
+		SrvNaming: c.srvNaming,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to collect services: %w", err)
