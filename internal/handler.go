@@ -1,5 +1,9 @@
 package internal
 
+import (
+	"strings"
+)
+
 type HandlerFileNaming string
 
 const (
@@ -12,6 +16,12 @@ type Handler struct {
 	MethodName          string
 	InputMsgStructName  string
 	OutputMsgStructName string
+
+	Service *Service
+}
+
+func (h *Handler) TestFileName() string {
+	return strings.Replace(h.Filename, ".go", "_test.go", 1)
 }
 
 func CreateHandlerFileNaming(val string) HandlerFileNaming {

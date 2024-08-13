@@ -1,11 +1,17 @@
 package {{.Service.PackageName}}
 
+import (
+    "context"
+)
+
 type testEnv struct {
     service *{{.Service.Name}}
+    ctx context.Context
 }
 
 func newTestEnv() *testEnv {
     return &testEnv{
         service: &{{.Service.Name}}{},
+        ctx: context.Background(),
     }
 }

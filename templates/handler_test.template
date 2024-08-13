@@ -1,0 +1,18 @@
+package {{.Service.PackageName}}
+
+import (
+    "testing"
+
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+
+    {{if .Service.APIImportPackage.AliasEqualsLastPackage}}{{ else }}{{.Service.APIImportPackage.Alias}} {{ end }}"{{.Service.APIImportPackage.FullName}}"
+)
+
+func Test{{.Handler.MethodName }}(t *testing.T) {
+    tEnv := newTestEnv()
+
+    resp, err := tEnv.service.{{.Handler.MethodName }}(tEnv.ctx, &{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }}{})
+    require.NoError(t, err)
+    assert.Equal(t, &{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }}{}, resp)
+}

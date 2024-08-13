@@ -82,6 +82,7 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 				MethodName:          method.GoName,
 				InputMsgStructName:  string(method.Input.Desc.Name()),
 				OutputMsgStructName: string(method.Output.Desc.Name()),
+				Service:             srv,
 			}
 
 			srv.Handlers[handler.Filename] = handler

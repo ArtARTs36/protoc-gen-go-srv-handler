@@ -63,7 +63,7 @@ func main() {
 				continue
 			}
 
-			_, genErr := cmd.gen(gen, f)
+			genErr := cmd.gen(gen, f)
 			if genErr != nil {
 				return fmt.Errorf("failed generating proto files: %v", genErr)
 			}
@@ -83,17 +83,15 @@ type command struct {
 	genTests          bool
 }
 
-func (c *command) gen(gen *protogen.Plugin, file *protogen.File) ([]*protogen.GeneratedFile, error) {
+func (c *command) gen(gen *protogen.Plugin, file *protogen.File) error {
 	services, err := c.srvCollector.Collect(file, internal.CollectOpts{
 		PkgNaming:         c.pkgNaming,
 		SrvNaming:         c.srvNaming,
 		HandlerFileNaming: c.handlerFileNaming,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to collect services: %w", err)
+		return fmt.Errorf("failed to collect services: %w", err)
 	}
-
-	var generatedFiles []*protogen.GeneratedFile
 
 	for _, srv := range services.Services {
 		if c.skipFile(srv.GoFileName) {
@@ -104,32 +102,58 @@ func (c *command) gen(gen *protogen.Plugin, file *protogen.File) ([]*protogen.Ge
 
 		err = c.renderer.RenderService(srvGenFile, srv)
 		if err != nil {
-			return nil, fmt.Errorf("failed rendering service: %w", err)
+			return fmt.Errorf("failed rendering service: %w", err)
 		}
-
-		generatedFiles = append(generatedFiles, srvGenFile)
 
 		if c.genTests {
 			srvTestGenFile := gen.NewGeneratedFile(srv.TestFileName, file.GoImportPath)
-			err = c.renderer.RenderServiceTest(srvTestGenFile, srv)
-			if err != nil {
-				return nil, fmt.Errorf("failed rendering service test: %w", err)
+			if !c.skipFile(srv.TestFileName) {
+				err = c.renderer.RenderServiceTest(srvTestGenFile, srv)
+				if err != nil {
+					return fmt.Errorf("failed rendering service test: %w", err)
+				}
 			}
 		}
 
-		for _, handler := range srv.Handlers {
-			handlerGenFile := gen.NewGeneratedFile(handler.Filename, file.GoImportPath)
-
-			err = c.renderer.RenderHandler(handlerGenFile, srv, handler)
-			if err != nil {
-				return nil, fmt.Errorf("failed rendering handler: %w", err)
-			}
-
-			generatedFiles = append(generatedFiles, handlerGenFile)
+		err = c.genHandlers(gen, file, srv)
+		if err != nil {
+			return fmt.Errorf("failed generating handlers: %w", err)
 		}
 	}
 
-	return generatedFiles, nil
+	return nil
+}
+
+func (c *command) genHandlers(gen *protogen.Plugin, file *protogen.File, srv *internal.Service) error {
+	for _, handler := range srv.Handlers {
+		handlerGenFile := gen.NewGeneratedFile(handler.Filename, file.GoImportPath)
+
+		err := c.renderer.RenderHandler(handlerGenFile, srv, handler)
+		if err != nil {
+			return fmt.Errorf("failed rendering handler: %w", err)
+		}
+
+		if c.genTests {
+			err = c.genHandlerTest(gen, file, handler)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (c *command) genHandlerTest(gen *protogen.Plugin, file *protogen.File, handler *internal.Handler) error {
+	handlerTestGenFile := gen.NewGeneratedFile(handler.TestFileName(), file.GoImportPath)
+	if !c.skipFile(handler.TestFileName()) {
+		err := c.renderer.RenderHandlerTest(handlerTestGenFile, handler)
+		if err != nil {
+			return fmt.Errorf("failed rendering handler test: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func (c *command) skipFile(path string) bool {

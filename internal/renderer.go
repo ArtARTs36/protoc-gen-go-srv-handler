@@ -44,3 +44,10 @@ func (r *Renderer) RenderHandler(w io.Writer, srv *Service, hand *Handler) error
 		"Handler": hand,
 	})
 }
+
+func (r *Renderer) RenderHandlerTest(w io.Writer, hand *Handler) error {
+	return r.templates.service.ExecuteTemplate(w, "handler_test.template", map[string]interface{}{
+		"Service": hand.Service,
+		"Handler": hand,
+	})
+}
