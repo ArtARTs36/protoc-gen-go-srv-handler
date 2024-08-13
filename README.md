@@ -2,6 +2,8 @@
 
 Protoc plugin for generate go server handlers
 
+![](demo.png)
+
 ## Installation
 
 Run
