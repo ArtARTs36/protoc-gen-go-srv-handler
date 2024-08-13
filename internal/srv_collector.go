@@ -26,10 +26,17 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 
 	apiImportPkg := ApiImportPackage{
 		FullName: string(file.GoImportPath),
+		Alias:    string(file.GoPackageName),
 	}
 
-	importPathParts := strings.Split(apiImportPkg.FullName, "/")
-	apiImportPkg.Alias = importPathParts[len(importPathParts)-1]
+	if apiImportPkg.Alias == "" {
+		importPathParts := strings.Split(apiImportPkg.FullName, "/")
+		apiImportPkg.Alias = importPathParts[len(importPathParts)-1]
+		apiImportPkg.AliasEqualsLastPackage = true
+	} else {
+		importPathParts := strings.Split(apiImportPkg.FullName, "/")
+		apiImportPkg.AliasEqualsLastPackage = apiImportPkg.Alias == importPathParts[len(importPathParts)-1]
+	}
 
 	for _, service := range file.Services {
 		srvPkg := c.generatePackageName(service, opts)

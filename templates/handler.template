@@ -3,7 +3,7 @@ package {{.Service.PackageName}}
 import (
     "context"
 
-    {{.Service.ApiImportPackage.Alias}} "{{.Service.ApiImportPackage.FullName}}"
+    {{if .Service.ApiImportPackage.AliasEqualsLastPackage}}{{ else }}{{.Service.ApiImportPackage.Alias}} {{ end }}"{{.Service.ApiImportPackage.FullName}}"
 )
 
 func (srv *{{.Service.Name}}) {{.Handler.MethodName }} (

@@ -30,8 +30,9 @@ type Service struct {
 }
 
 type ApiImportPackage struct {
-	FullName string
-	Alias    string
+	FullName               string
+	Alias                  string
+	AliasEqualsLastPackage bool
 }
 
 type Handler struct {
