@@ -1,7 +1,7 @@
 package {{.Service.PackageName}}
 
 import (
-    {{.Service.APIImportPackage.Alias}} "{{.Service.APIImportPackage.FullName}}"
+    {{if .Service.APIImportPackage.AliasEqualsLastPackage}}{{ else }}{{.Service.APIImportPackage.Alias}} {{ end }}"{{.Service.APIImportPackage.FullName}}"
 )
 
 type {{.Service.Name}} struct {
