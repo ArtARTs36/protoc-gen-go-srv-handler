@@ -32,6 +32,12 @@ func (r *Renderer) RenderService(w io.Writer, srv *Service) error {
 	})
 }
 
+func (r *Renderer) RenderServiceTest(w io.Writer, srv *Service) error {
+	return r.templates.service.ExecuteTemplate(w, "service_test.template", map[string]interface{}{
+		"Service": srv,
+	})
+}
+
 func (r *Renderer) RenderHandler(w io.Writer, srv *Service, hand *Handler) error {
 	return r.templates.service.ExecuteTemplate(w, "handler.template", map[string]interface{}{
 		"Service": srv,

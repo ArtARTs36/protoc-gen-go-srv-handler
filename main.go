@@ -15,10 +15,16 @@ func main() {
 	var flags flag.FlagSet
 	outDir := flags.String("out_dir", "", "Output directory for generated files")
 	overwrite := flags.Bool("overwrite", false, "Overwrite existing files")
+	genTests := flags.Bool("gen_tests", false, "Generate test files")
 	pkgNamingVal := flags.String(
 		"pkg_naming", string(internal.PkgNamingAsIs), "Package naming: `as_is`, `without_service_suffix`")
 	srvNamingVal := flags.String(
 		"srv_naming", string(internal.SrvNamingAsIs), "Service naming: `as_is`, `just_service`")
+	handlerFileNamingVal := flags.String(
+		"handler_file_naming",
+		string(internal.HandlerFileNamingAsIs),
+		"Handler file naming: `as_is`, `without domain`",
+	)
 
 	protogen.Options{
 		ParamFunc: flags.Set,
@@ -29,6 +35,7 @@ func main() {
 
 		pkgNaming := internal.CreatePkgNaming(*pkgNamingVal)
 		srvNaming := internal.CreateSrvNaming(*srvNamingVal)
+		handlerFileNaming := internal.CreateHandlerFileNaming(*handlerFileNamingVal)
 
 		renderer, err := internal.NewRenderer()
 		if err != nil {
@@ -41,12 +48,14 @@ func main() {
 		}
 
 		cmd := &command{
-			outputDir:    filepath.Join(currDir, *outDir),
-			overwrite:    *overwrite,
-			pkgNaming:    pkgNaming,
-			srvCollector: internal.NewSrvCollector(),
-			renderer:     renderer,
-			srvNaming:    srvNaming,
+			outputDir:         filepath.Join(currDir, *outDir),
+			overwrite:         *overwrite,
+			pkgNaming:         pkgNaming,
+			handlerFileNaming: handlerFileNaming,
+			genTests:          *genTests,
+			srvCollector:      internal.NewSrvCollector(),
+			renderer:          renderer,
+			srvNaming:         srvNaming,
 		}
 
 		for _, f := range gen.Files {
@@ -64,18 +73,21 @@ func main() {
 }
 
 type command struct {
-	outputDir    string
-	overwrite    bool
-	pkgNaming    internal.PkgNaming
-	srvNaming    internal.SrvNaming
-	srvCollector *internal.SrvCollector
-	renderer     *internal.Renderer
+	outputDir         string
+	overwrite         bool
+	handlerFileNaming internal.HandlerFileNaming
+	pkgNaming         internal.PkgNaming
+	srvNaming         internal.SrvNaming
+	srvCollector      *internal.SrvCollector
+	renderer          *internal.Renderer
+	genTests          bool
 }
 
 func (c *command) gen(gen *protogen.Plugin, file *protogen.File) ([]*protogen.GeneratedFile, error) {
 	services, err := c.srvCollector.Collect(file, internal.CollectOpts{
-		PkgNaming: c.pkgNaming,
-		SrvNaming: c.srvNaming,
+		PkgNaming:         c.pkgNaming,
+		SrvNaming:         c.srvNaming,
+		HandlerFileNaming: c.handlerFileNaming,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to collect services: %w", err)
@@ -84,29 +96,36 @@ func (c *command) gen(gen *protogen.Plugin, file *protogen.File) ([]*protogen.Ge
 	var generatedFiles []*protogen.GeneratedFile
 
 	for _, srv := range services.Services {
-		filename := srv.PbFileName
-		if c.skipFile(filename) {
+		if c.skipFile(srv.GoFileName) {
 			continue
 		}
 
-		g := gen.NewGeneratedFile(filename, file.GoImportPath)
+		srvGenFile := gen.NewGeneratedFile(srv.GoFileName, file.GoImportPath)
 
-		err = c.renderer.RenderService(g, srv)
+		err = c.renderer.RenderService(srvGenFile, srv)
 		if err != nil {
 			return nil, fmt.Errorf("failed rendering service: %w", err)
 		}
 
-		generatedFiles = append(generatedFiles, g)
+		generatedFiles = append(generatedFiles, srvGenFile)
+
+		if c.genTests {
+			srvTestGenFile := gen.NewGeneratedFile(srv.TestFileName, file.GoImportPath)
+			err = c.renderer.RenderServiceTest(srvTestGenFile, srv)
+			if err != nil {
+				return nil, fmt.Errorf("failed rendering service test: %w", err)
+			}
+		}
 
 		for _, handler := range srv.Handlers {
-			hf := gen.NewGeneratedFile(handler.Filename, file.GoImportPath)
+			handlerGenFile := gen.NewGeneratedFile(handler.Filename, file.GoImportPath)
 
-			err = c.renderer.RenderHandler(hf, srv, handler)
+			err = c.renderer.RenderHandler(handlerGenFile, srv, handler)
 			if err != nil {
 				return nil, fmt.Errorf("failed rendering handler: %w", err)
 			}
 
-			generatedFiles = append(generatedFiles, hf)
+			generatedFiles = append(generatedFiles, handlerGenFile)
 		}
 	}
 

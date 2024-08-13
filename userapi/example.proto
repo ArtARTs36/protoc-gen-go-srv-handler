@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package userapi;
+
+option go_package = "github.com/artarts36/protoc-gen-go-srv-handler/userapi;userapi";
+
+service UserService {
+  rpc Add(AddUserRequest) returns (AddUserResponse);
+  rpc AddUser(AddUserRequest) returns (AddUserResponse);
+  rpc Update(UpdateUserRequest) returns (UpdateUserResponse);
+}
+
+service SuperUserService {
+  rpc Add(AddUserRequest) returns (AddUserResponse);
+  rpc Update(UpdateUserRequest) returns (UpdateUserResponse);
+}
+
+message AddUserRequest {
+}
+
+message AddUserResponse {
+}
+
+message UpdateUserRequest {
+}
+
+message UpdateUserResponse {
+}

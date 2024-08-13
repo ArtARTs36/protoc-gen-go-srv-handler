@@ -20,24 +20,20 @@ type Services struct {
 }
 
 type Service struct {
-	PackageName string
-	Name        string
-	RPCName     string
-	PbFileName  string
+	PackageName  string
+	Name         string
+	RPCName      string
+	GoFileName   string
+	TestFileName string
+
+	Domain string
 
 	APIImportPackage APIImportPackage
-	Handlers         []*Handler
+	Handlers         map[string]*Handler
 }
 
 type APIImportPackage struct {
 	FullName               string
 	Alias                  string
 	AliasEqualsLastPackage bool
-}
-
-type Handler struct {
-	Filename            string
-	MethodName          string
-	InputMsgStructName  string
-	OutputMsgStructName string
 }

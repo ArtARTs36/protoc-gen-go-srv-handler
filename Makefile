@@ -8,6 +8,8 @@ test:
         --go-srv-handler_opt=overwrite=true \
         --go-srv-handler_opt=pkg_naming=without_service_suffix \
         --go-srv-handler_opt=srv_naming=just_service \
+        --go-srv-handler_opt=gen_tests=true \
+        --go-srv-handler_opt=handler_file_naming=without_domain \
         userapi/*.proto
 
 lint:

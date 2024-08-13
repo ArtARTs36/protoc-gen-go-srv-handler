@@ -1,0 +1,11 @@
+package {{.Service.PackageName}}
+
+type testEnv struct {
+    service *{{.Service.Name}}
+}
+
+func newTestEnv() *testEnv {
+    return &testEnv{
+        service: &{{.Service.Name}}{},
+    }
+}
