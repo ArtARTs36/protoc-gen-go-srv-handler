@@ -29,6 +29,8 @@ type MessageProperty struct {
 
 func (p *MessageProperty) ExampleValue() string {
 	switch p.Type {
+	case ValTypeUndefined:
+		return "undefined"
 	case ValTypeString:
 		str := "test"
 

@@ -2,6 +2,12 @@
 
 Protoc plugin for generate go server handlers
 
+**Features**
+
+- Go server handler files generation
+- Go tests files generation
+- Request validation generation
+
 ![](demo.png)
 
 ## Installation
