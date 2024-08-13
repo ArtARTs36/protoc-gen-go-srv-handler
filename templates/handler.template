@@ -23,8 +23,8 @@ func (srv *{{.Service.Name}}) {{.Handler.MethodName }} (
 
 {{if eq .Params.RequestValidator "ozzo"}}
 func (srv *{{.Service.Name}}) validate{{.Handler.MethodName }}Request(req *{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsg.Name }}) error {
-	return validation.Errors{ {{ range .Handler.InputMsg.Properties.Required }}
-	    "{{ .GoName }}" : validation.Validate(req.{{ .GoName }}, validation.Required),{{ end }}
+	return validation.Errors{ {{ range .Handler.InputMsg.Properties.Required }}{{ if ne .Type 0 }}
+	    "{{ .GoName }}" : validation.Validate(req.{{ .GoName }}, validation.Required),{{ end }}{{ end }}
 	}.Filter()
 }
 {{end}}
