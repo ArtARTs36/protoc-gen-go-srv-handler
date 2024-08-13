@@ -2,8 +2,10 @@ package {{.Service.PackageName}}
 
 import (
     "context"
-    {{if eq .Params.RequestValidator "ozzo"}}
-    validation "github.com/go-ozzo/ozzo-validation/v4"{{end}}
+
+    {{if eq .Params.RequestValidator "ozzo"}}validation "github.com/go-ozzo/ozzo-validation/v4"{{end}}
+    "google.golang.org/grpc/codes"
+    "google.golang.org/grpc/status"
 
     {{if .Service.APIImportPackage.AliasEqualsLastPackage}}{{ else }}{{.Service.APIImportPackage.Alias}} {{ end }}"{{.Service.APIImportPackage.FullName}}"
 )
@@ -13,14 +15,14 @@ func (srv *{{.Service.Name}}) {{.Handler.MethodName }} (
     req *{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }},
 ) (*{{.Service.APIImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}, error) { {{if ne .Params.RequestValidator "no"}}
     if err := srv.validate{{.Handler.MethodName }}Request(req); err != nil {
-
+        return nil, status.Error(codes.InvalidArgument, err.Error())
     }
     {{end}}
     return &{{.Service.APIImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}{}, nil
 }
 
 {{if eq .Params.RequestValidator "ozzo"}}
-func (srv *{{.Service.Name}}) validate{{.Handler.MethodName }}Request(req *{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }})*{{.Service.APIImportPackage.Alias}}.{{.Handler.OutputMsgStructName }} {
+func (srv *{{.Service.Name}}) validate{{.Handler.MethodName }}Request(req *{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }}) error {
 	return validation.Errors{}.Filter()
 }
 {{end}}
