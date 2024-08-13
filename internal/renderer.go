@@ -38,11 +38,16 @@ func (r *Renderer) RenderServiceTest(w io.Writer, srv *Service) error {
 	})
 }
 
-func (r *Renderer) RenderHandler(w io.Writer, srv *Service, hand *Handler) error {
+func (r *Renderer) RenderHandler(w io.Writer, srv *Service, hand *Handler, params RenderHandlerParams) error {
 	return r.templates.service.ExecuteTemplate(w, "handler.template", map[string]interface{}{
 		"Service": srv,
 		"Handler": hand,
+		"Params":  params,
 	})
+}
+
+type RenderHandlerParams struct {
+	RequestValidator RequestValidator
 }
 
 func (r *Renderer) RenderHandlerTest(w io.Writer, hand *Handler) error {

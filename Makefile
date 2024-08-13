@@ -10,6 +10,7 @@ test:
         --go-srv-handler_opt=srv_naming=just_service \
         --go-srv-handler_opt=gen_tests=true \
         --go-srv-handler_opt=handler_file_naming=without_domain \
+        --go-srv-handler_opt=request_validator=ozzo \
         userapi/*.proto
 
 lint:

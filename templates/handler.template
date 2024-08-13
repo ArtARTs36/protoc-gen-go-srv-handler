@@ -2,6 +2,8 @@ package {{.Service.PackageName}}
 
 import (
     "context"
+    {{if eq .Params.RequestValidator "ozzo"}}
+    validation "github.com/go-ozzo/ozzo-validation/v4"{{end}}
 
     {{if .Service.APIImportPackage.AliasEqualsLastPackage}}{{ else }}{{.Service.APIImportPackage.Alias}} {{ end }}"{{.Service.APIImportPackage.FullName}}"
 )
@@ -9,6 +11,16 @@ import (
 func (srv *{{.Service.Name}}) {{.Handler.MethodName }} (
     ctx context.Context,
     req *{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }},
-) (*{{.Service.APIImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}, error) {
+) (*{{.Service.APIImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}, error) { {{if ne .Params.RequestValidator "no"}}
+    if err := srv.validate{{.Handler.MethodName }}Request(req); err != nil {
+
+    }
+    {{end}}
     return &{{.Service.APIImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}{}, nil
 }
+
+{{if eq .Params.RequestValidator "ozzo"}}
+func (srv *{{.Service.Name}}) validate{{.Handler.MethodName }}Request(req *{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }})*{{.Service.APIImportPackage.Alias}}.{{.Handler.OutputMsgStructName }} {
+	return validation.Errors{}.Filter()
+}
+{{end}}

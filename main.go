@@ -25,6 +25,11 @@ func main() {
 		string(internal.HandlerFileNamingAsIs),
 		"Handler file naming: `as_is`, `without domain`",
 	)
+	requestValidatorVal := flags.String(
+		"request_validator",
+		string(internal.HandlerFileNamingAsIs),
+		"Request validator: `no`, `ozzo`",
+	)
 
 	protogen.Options{
 		ParamFunc: flags.Set,
@@ -36,6 +41,7 @@ func main() {
 		pkgNaming := internal.CreatePkgNaming(*pkgNamingVal)
 		srvNaming := internal.CreateSrvNaming(*srvNamingVal)
 		handlerFileNaming := internal.CreateHandlerFileNaming(*handlerFileNamingVal)
+		reqValidator := internal.CreateRequestValidator(*requestValidatorVal)
 
 		renderer, err := internal.NewRenderer()
 		if err != nil {
@@ -56,6 +62,7 @@ func main() {
 			srvCollector:      internal.NewSrvCollector(),
 			renderer:          renderer,
 			srvNaming:         srvNaming,
+			reqValidator:      reqValidator,
 		}
 
 		for _, f := range gen.Files {
@@ -78,6 +85,7 @@ type command struct {
 	handlerFileNaming internal.HandlerFileNaming
 	pkgNaming         internal.PkgNaming
 	srvNaming         internal.SrvNaming
+	reqValidator      internal.RequestValidator
 	srvCollector      *internal.SrvCollector
 	renderer          *internal.Renderer
 	genTests          bool
@@ -128,7 +136,9 @@ func (c *command) genHandlers(gen *protogen.Plugin, file *protogen.File, srv *in
 	for _, handler := range srv.Handlers {
 		handlerGenFile := gen.NewGeneratedFile(handler.Filename, file.GoImportPath)
 
-		err := c.renderer.RenderHandler(handlerGenFile, srv, handler)
+		err := c.renderer.RenderHandler(handlerGenFile, srv, handler, internal.RenderHandlerParams{
+			RequestValidator: c.reqValidator,
+		})
 		if err != nil {
 			return fmt.Errorf("failed rendering handler: %w", err)
 		}
