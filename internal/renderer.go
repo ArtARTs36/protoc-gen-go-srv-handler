@@ -1,10 +1,10 @@
 package internal
 
 import (
-	_ "embed"
-	"github.com/artarts36/protoc-gen-go-srv-handler/templates"
 	"html/template"
 	"io"
+
+	"github.com/artarts36/protoc-gen-go-srv-handler/templates"
 )
 
 type Renderer struct {

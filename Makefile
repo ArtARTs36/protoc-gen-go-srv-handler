@@ -9,3 +9,6 @@ test:
         --go-srv-handler_opt=pkg_naming=without_service_suffix \
         --go-srv-handler_opt=srv_naming=just_service \
         userapi/*.proto
+
+lint:
+	golangci-lint run --fix

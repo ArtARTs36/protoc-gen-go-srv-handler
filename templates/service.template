@@ -1,11 +1,11 @@
 package {{.Service.PackageName}}
 
 import (
-    {{.Service.ApiImportPackage.Alias}} "{{.Service.ApiImportPackage.FullName}}"
+    {{.Service.APIImportPackage.Alias}} "{{.Service.APIImportPackage.FullName}}"
 )
 
 type {{.Service.Name}} struct {
-    {{.Service.ApiImportPackage.Alias}}.Unimplemented{{.Service.RpcName}}Server
+    {{.Service.APIImportPackage.Alias}}.Unimplemented{{.Service.RPCName}}Server
 }
 
 func NewService() *{{.Service.Name}} {

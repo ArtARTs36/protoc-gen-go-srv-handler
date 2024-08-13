@@ -24,7 +24,7 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 		Services: []*Service{},
 	}
 
-	apiImportPkg := ApiImportPackage{
+	apiImportPkg := APIImportPackage{
 		FullName: string(file.GoImportPath),
 		Alias:    string(file.GoPackageName),
 	}
@@ -44,8 +44,8 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 		srv := &Service{
 			PackageName:      srvPkg,
 			Name:             c.generateServiceName(service, opts),
-			RpcName:          service.GoName,
-			ApiImportPackage: apiImportPkg,
+			RPCName:          service.GoName,
+			APIImportPackage: apiImportPkg,
 			PbFileName:       srvPkg + "/service.go",
 		}
 

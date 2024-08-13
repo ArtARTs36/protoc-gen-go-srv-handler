@@ -3,12 +3,12 @@ package {{.Service.PackageName}}
 import (
     "context"
 
-    {{if .Service.ApiImportPackage.AliasEqualsLastPackage}}{{ else }}{{.Service.ApiImportPackage.Alias}} {{ end }}"{{.Service.ApiImportPackage.FullName}}"
+    {{if .Service.APIImportPackage.AliasEqualsLastPackage}}{{ else }}{{.Service.APIImportPackage.Alias}} {{ end }}"{{.Service.APIImportPackage.FullName}}"
 )
 
 func (srv *{{.Service.Name}}) {{.Handler.MethodName }} (
     ctx context.Context,
-    req *{{.Service.ApiImportPackage.Alias}}.{{.Handler.InputMsgStructName }},
-) (*{{.Service.ApiImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}, error) {
-    return &{{.Service.ApiImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}{}, nil
+    req *{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }},
+) (*{{.Service.APIImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}, error) {
+    return &{{.Service.APIImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}{}, nil
 }

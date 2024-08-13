@@ -4,18 +4,21 @@ import (
 	_ "embed"
 	"flag"
 	"fmt"
-	"github.com/artarts36/protoc-gen-go-srv-handler/internal"
-	"google.golang.org/protobuf/compiler/protogen"
 	"os"
 	"path/filepath"
+
+	"github.com/artarts36/protoc-gen-go-srv-handler/internal"
+	"google.golang.org/protobuf/compiler/protogen"
 )
 
 func main() {
 	var flags flag.FlagSet
 	outDir := flags.String("out_dir", "", "Output directory for generated files")
 	overwrite := flags.Bool("overwrite", false, "Overwrite existing files")
-	pkgNamingVal := flags.String("pkg_naming", string(internal.PkgNamingAsIs), "Package naming: `as_is`, `without_service_suffix`")
-	srvNamingVal := flags.String("srv_naming", string(internal.SrvNamingAsIs), "Service naming: `as_is`, `just_service`")
+	pkgNamingVal := flags.String(
+		"pkg_naming", string(internal.PkgNamingAsIs), "Package naming: `as_is`, `without_service_suffix`")
+	srvNamingVal := flags.String(
+		"srv_naming", string(internal.SrvNamingAsIs), "Service naming: `as_is`, `just_service`")
 
 	protogen.Options{
 		ParamFunc: flags.Set,

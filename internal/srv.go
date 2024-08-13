@@ -22,14 +22,14 @@ type Services struct {
 type Service struct {
 	PackageName string
 	Name        string
-	RpcName     string
+	RPCName     string
 	PbFileName  string
 
-	ApiImportPackage ApiImportPackage
+	APIImportPackage APIImportPackage
 	Handlers         []*Handler
 }
 
-type ApiImportPackage struct {
+type APIImportPackage struct {
 	FullName               string
 	Alias                  string
 	AliasEqualsLastPackage bool
