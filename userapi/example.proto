@@ -16,6 +16,8 @@ service SuperUserService {
 }
 
 message AddUserRequest {
+  string name = 1;
+  int32 age = 2;
 }
 
 message AddUserResponse {

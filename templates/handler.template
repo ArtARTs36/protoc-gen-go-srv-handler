@@ -12,7 +12,7 @@ import (
 
 func (srv *{{.Service.Name}}) {{.Handler.MethodName }} (
     ctx context.Context,
-    req *{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }},
+    req *{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsg.Name }},
 ) (*{{.Service.APIImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}, error) { {{if ne .Params.RequestValidator "no"}}
     if err := srv.validate{{.Handler.MethodName }}Request(req); err != nil {
         return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -22,7 +22,9 @@ func (srv *{{.Service.Name}}) {{.Handler.MethodName }} (
 }
 
 {{if eq .Params.RequestValidator "ozzo"}}
-func (srv *{{.Service.Name}}) validate{{.Handler.MethodName }}Request(req *{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }}) error {
-	return validation.Errors{}.Filter()
+func (srv *{{.Service.Name}}) validate{{.Handler.MethodName }}Request(req *{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsg.Name }}) error {
+	return validation.Errors{ {{ range .Handler.InputMsg.Properties.Required }}
+	    "{{ .GoName }}" : validation.Validate(req.{{ .GoName }}, validation.Required),{{ end }}
+	}.Filter()
 }
 {{end}}

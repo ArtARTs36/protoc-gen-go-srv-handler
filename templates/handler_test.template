@@ -12,7 +12,9 @@ import (
 func Test{{.Handler.MethodName }}(t *testing.T) {
     tEnv := newTestEnv()
 
-    resp, err := tEnv.service.{{.Handler.MethodName }}(tEnv.ctx, &{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }}{})
+    resp, err := tEnv.service.{{.Handler.MethodName }}(tEnv.ctx, &{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }}{ {{ range .Handler.InputMsg.Properties.Required }}
+        {{ .GoName }}: {{ if eq .Type 0 }}"{{ .ExampleValue }}"{{ else }}{{ .ExampleValue }}{{ end }},{{ end }}
+    })
     require.NoError(t, err)
     assert.Equal(t, &{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }}{}, resp)
 }

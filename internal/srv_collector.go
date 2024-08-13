@@ -77,10 +77,32 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 
 			handlersByFiles[names.selected] = names
 
+			inputMsg := Message{
+				Name: string(method.Input.Desc.Name()),
+				Properties: MessageProperties{
+					All:      make([]*MessageProperty, 0),
+					Required: make([]*MessageProperty, 0),
+				},
+			}
+
+			for _, field := range method.Input.Fields {
+				prop := &MessageProperty{
+					GoName:   field.GoName,
+					Type:     createValType(field.Desc.Kind()),
+					Required: !field.Desc.HasOptionalKeyword(),
+				}
+
+				inputMsg.Properties.All = append(inputMsg.Properties.All, prop)
+				if prop.Required {
+					inputMsg.Properties.Required = append(inputMsg.Properties.Required, prop)
+				}
+			}
+
 			handler := &Handler{
 				Filename:            names.selected,
 				MethodName:          method.GoName,
 				InputMsgStructName:  string(method.Input.Desc.Name()),
+				InputMsg:            inputMsg,
 				OutputMsgStructName: string(method.Output.Desc.Name()),
 				Service:             srv,
 			}
