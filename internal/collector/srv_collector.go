@@ -1,8 +1,11 @@
-package internal
+package collector
 
 import (
 	"fmt"
 	"strings"
+
+	"github.com/artarts36/protoc-gen-go-srv-handler/internal/entity"
+	"github.com/artarts36/protoc-gen-go-srv-handler/internal/options"
 
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -15,10 +18,10 @@ func NewSrvCollector() *SrvCollector {
 }
 
 type CollectOpts struct {
-	SrvNaming         SrvNaming
-	PkgNaming         PkgNaming
-	HandlerFileNaming HandlerFileNaming
-	RequestValidator  RequestValidator
+	SrvNaming         options.SrvNaming
+	PkgNaming         options.PkgNaming
+	HandlerFileNaming options.HandlerFileNaming
+	RequestValidator  entity.RequestValidator
 }
 
 type handlerFileNames struct {
@@ -27,12 +30,12 @@ type handlerFileNames struct {
 	withoutDomain string
 }
 
-func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services, error) {
-	services := &Services{
-		Services: []*Service{},
+func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*entity.Services, error) {
+	services := &entity.Services{
+		Services: []*entity.Service{},
 	}
 
-	apiImportPkg := APIImportPackage{
+	apiImportPkg := entity.APIImportPackage{
 		FullName: string(file.GoImportPath),
 		Alias:    string(file.GoPackageName),
 	}
@@ -49,7 +52,7 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 	for _, service := range file.Services {
 		srvPkg := c.generatePackageName(service, opts)
 
-		srv := &Service{
+		srv := &entity.Service{
 			PackageName:      srvPkg,
 			Name:             c.generateServiceName(service, opts),
 			Domain:           strings.TrimSuffix(service.GoName, "Service"),
@@ -61,7 +64,7 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 
 		handlersByFiles := map[string]handlerFileNames{}
 
-		srv.Handlers = map[string]*Handler{}
+		srv.Handlers = map[string]*entity.Handler{}
 
 		for _, method := range service.Methods {
 			names := c.generateHandlerFilename(method, srv, srvPkg, opts)
@@ -78,18 +81,18 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 
 			handlersByFiles[names.selected] = names
 
-			inputMsg := &Message{
+			inputMsg := &entity.Message{
 				Name: string(method.Input.Desc.Name()),
-				Properties: MessageProperties{
-					All:      make([]*MessageProperty, 0),
-					Required: make([]*MessageProperty, 0),
+				Properties: entity.MessageProperties{
+					All:      make([]*entity.MessageProperty, 0),
+					Required: make([]*entity.MessageProperty, 0),
 				},
 			}
 
 			for _, field := range method.Input.Fields {
-				prop := &MessageProperty{
+				prop := &entity.MessageProperty{
 					GoName:   field.GoName,
-					Type:     createValType(field.Desc.Kind()),
+					Type:     entity.CreateValType(field.Desc.Kind()),
 					Required: !field.Desc.HasOptionalKeyword(),
 					Optional: field.Desc.HasOptionalKeyword(),
 				}
@@ -102,7 +105,7 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 
 			c.setMessageValidateableFields(inputMsg, opts)
 
-			handler := &Handler{
+			handler := &entity.Handler{
 				Filename:            names.selected,
 				MethodName:          method.GoName,
 				InputMsgStructName:  string(method.Input.Desc.Name()),
@@ -121,7 +124,7 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 }
 
 func (*SrvCollector) generatePackageName(srv *protogen.Service, opts CollectOpts) string {
-	if opts.PkgNaming == PkgNamingAsIs {
+	if opts.PkgNaming == options.PkgNamingAsIs {
 		return strings.ToLower(srv.GoName)
 	}
 
@@ -129,7 +132,7 @@ func (*SrvCollector) generatePackageName(srv *protogen.Service, opts CollectOpts
 }
 
 func (*SrvCollector) generateServiceName(srv *protogen.Service, opts CollectOpts) string {
-	if opts.SrvNaming == SrvNamingAsIs {
+	if opts.SrvNaming == options.SrvNamingAsIs {
 		return srv.GoName
 	}
 
@@ -138,7 +141,7 @@ func (*SrvCollector) generateServiceName(srv *protogen.Service, opts CollectOpts
 
 func (*SrvCollector) generateHandlerFilename(
 	method *protogen.Method,
-	srv *Service,
+	srv *entity.Service,
 	pkg string,
 	opts CollectOpts,
 ) handlerFileNames {
@@ -155,7 +158,7 @@ func (*SrvCollector) generateHandlerFilename(
 		),
 	}
 
-	if opts.HandlerFileNaming == HandlerFileNamingAsIs {
+	if opts.HandlerFileNaming == options.HandlerFileNamingAsIs {
 		names.selected = names.asIs
 	} else {
 		names.selected = names.withoutDomain
@@ -164,8 +167,8 @@ func (*SrvCollector) generateHandlerFilename(
 	return names
 }
 
-func (*SrvCollector) setMessageValidateableFields(msg *Message, opts CollectOpts) {
-	if opts.RequestValidator.Type != RequestValidatorTypeNo {
+func (*SrvCollector) setMessageValidateableFields(msg *entity.Message, opts CollectOpts) {
+	if opts.RequestValidator.Type != entity.RequestValidatorTypeNo {
 		msg.Properties.Validateable = msg.Properties.Required
 	}
 }

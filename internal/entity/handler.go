@@ -1,14 +1,9 @@
-package internal
+package entity
 
 import (
 	"strings"
-)
 
-type HandlerFileNaming string
-
-const (
-	HandlerFileNamingAsIs          HandlerFileNaming = "as_is"
-	HandlerFileNamingWithoutDomain HandlerFileNaming = "without_domain"
+	"github.com/artarts36/protoc-gen-go-srv-handler/internal/options"
 )
 
 type Message struct {
@@ -68,10 +63,10 @@ func (h *Handler) TestFileName() string {
 	return strings.Replace(h.Filename, ".go", "_test.go", 1)
 }
 
-func CreateHandlerFileNaming(val string) HandlerFileNaming {
-	if val == string(HandlerFileNamingWithoutDomain) {
-		return HandlerFileNamingWithoutDomain
+func CreateHandlerFileNaming(val string) options.HandlerFileNaming {
+	if val == string(options.HandlerFileNamingWithoutDomain) {
+		return options.HandlerFileNamingWithoutDomain
 	}
 
-	return HandlerFileNamingAsIs
+	return options.HandlerFileNamingAsIs
 }

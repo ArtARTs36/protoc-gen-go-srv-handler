@@ -7,9 +7,13 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/artarts36/protoc-gen-go-srv-handler/internal/collector"
+	"github.com/artarts36/protoc-gen-go-srv-handler/internal/entity"
+	"github.com/artarts36/protoc-gen-go-srv-handler/internal/options"
+	"github.com/artarts36/protoc-gen-go-srv-handler/internal/renderer"
+
 	"google.golang.org/protobuf/types/pluginpb"
 
-	"github.com/artarts36/protoc-gen-go-srv-handler/internal"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
@@ -19,22 +23,22 @@ func main() {
 	overwrite := flags.Bool("overwrite", false, "Overwrite existing files")
 	genTests := flags.Bool("gen_tests", false, "Generate test files")
 	pkgNamingVal := flags.String(
-		"pkg_naming", string(internal.PkgNamingAsIs), "Package naming: `as_is`, `without_service_suffix`")
+		"pkg_naming", string(options.PkgNamingAsIs), "Package naming: `as_is`, `without_service_suffix`")
 	srvNamingVal := flags.String(
-		"srv_naming", string(internal.SrvNamingAsIs), "Service naming: `as_is`, `just_service`")
+		"srv_naming", string(options.SrvNamingAsIs), "Service naming: `as_is`, `just_service`")
 	handlerFileNamingVal := flags.String(
 		"handler_file_naming",
-		string(internal.HandlerFileNamingAsIs),
+		string(options.HandlerFileNamingAsIs),
 		"Handler file naming: `as_is`, `without domain`",
 	)
 	requestValidatorVal := flags.String(
 		"request_validator",
-		string(internal.RequestValidatorTypeNo),
+		string(entity.RequestValidatorTypeNo),
 		"Request validator: `no`, `ozzo`",
 	)
 	requestValidatorFieldsVal := flags.String(
 		"request_validator_fields",
-		string(internal.RequestValidatorFieldsNonOptional),
+		string(entity.RequestValidatorFieldsNonOptional),
 		"Request validator fields: `non_optional`",
 	)
 
@@ -47,13 +51,13 @@ func main() {
 			return fmt.Errorf("out_dir is required, set --go-srv-handler_opt=out_dir=./dir")
 		}
 
-		pkgNaming := internal.CreatePkgNaming(*pkgNamingVal)
-		srvNaming := internal.CreateSrvNaming(*srvNamingVal)
-		handlerFileNaming := internal.CreateHandlerFileNaming(*handlerFileNamingVal)
-		reqValidator := internal.CreateRequestValidator(*requestValidatorVal)
-		reqValidatorFields := internal.CreateRequestValidatorFields(*requestValidatorFieldsVal)
+		pkgNaming := options.CreatePkgNaming(*pkgNamingVal)
+		srvNaming := options.CreateSrvNaming(*srvNamingVal)
+		handlerFileNaming := entity.CreateHandlerFileNaming(*handlerFileNamingVal)
+		reqValidator := entity.CreateRequestValidator(*requestValidatorVal)
+		reqValidatorFields := entity.CreateRequestValidatorFields(*requestValidatorFieldsVal)
 
-		renderer, err := internal.NewRenderer()
+		rend, err := renderer.NewRenderer()
 		if err != nil {
 			return err
 		}
@@ -69,10 +73,10 @@ func main() {
 			pkgNaming:         pkgNaming,
 			handlerFileNaming: handlerFileNaming,
 			genTests:          *genTests,
-			srvCollector:      internal.NewSrvCollector(),
-			renderer:          renderer,
+			srvCollector:      collector.NewSrvCollector(),
+			renderer:          rend,
 			srvNaming:         srvNaming,
-			reqValidator: internal.RequestValidator{
+			reqValidator: entity.RequestValidator{
 				Type:   reqValidator,
 				Fields: reqValidatorFields,
 			},
@@ -95,17 +99,17 @@ func main() {
 type command struct {
 	outputDir         string
 	overwrite         bool
-	handlerFileNaming internal.HandlerFileNaming
-	pkgNaming         internal.PkgNaming
-	srvNaming         internal.SrvNaming
-	reqValidator      internal.RequestValidator
-	srvCollector      *internal.SrvCollector
-	renderer          *internal.Renderer
+	handlerFileNaming options.HandlerFileNaming
+	pkgNaming         options.PkgNaming
+	srvNaming         options.SrvNaming
+	reqValidator      entity.RequestValidator
+	srvCollector      *collector.SrvCollector
+	renderer          *renderer.Renderer
 	genTests          bool
 }
 
 func (c *command) gen(gen *protogen.Plugin, file *protogen.File) error {
-	services, err := c.srvCollector.Collect(file, internal.CollectOpts{
+	services, err := c.srvCollector.Collect(file, collector.CollectOpts{
 		PkgNaming:         c.pkgNaming,
 		SrvNaming:         c.srvNaming,
 		HandlerFileNaming: c.handlerFileNaming,
@@ -146,11 +150,11 @@ func (c *command) gen(gen *protogen.Plugin, file *protogen.File) error {
 	return nil
 }
 
-func (c *command) genHandlers(gen *protogen.Plugin, file *protogen.File, srv *internal.Service) error {
+func (c *command) genHandlers(gen *protogen.Plugin, file *protogen.File, srv *entity.Service) error {
 	for _, handler := range srv.Handlers {
 		handlerGenFile := gen.NewGeneratedFile(handler.Filename, file.GoImportPath)
 
-		err := c.renderer.RenderHandler(handlerGenFile, srv, handler, internal.RenderHandlerParams{
+		err := c.renderer.RenderHandler(handlerGenFile, handler, renderer.RenderHandlerParams{
 			RequestValidator: c.reqValidator,
 		})
 		if err != nil {
@@ -168,10 +172,10 @@ func (c *command) genHandlers(gen *protogen.Plugin, file *protogen.File, srv *in
 	return nil
 }
 
-func (c *command) genHandlerTest(gen *protogen.Plugin, file *protogen.File, handler *internal.Handler) error {
+func (c *command) genHandlerTest(gen *protogen.Plugin, file *protogen.File, handler *entity.Handler) error {
 	handlerTestGenFile := gen.NewGeneratedFile(handler.TestFileName(), file.GoImportPath)
 	if !c.skipFile(handler.TestFileName()) {
-		err := c.renderer.RenderHandlerTest(handlerTestGenFile, handler, internal.RenderHandlerParams{
+		err := c.renderer.RenderHandlerTest(handlerTestGenFile, handler, renderer.RenderHandlerParams{
 			RequestValidator: c.reqValidator,
 		})
 		if err != nil {

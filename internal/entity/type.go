@@ -1,4 +1,4 @@
-package internal
+package entity
 
 import "google.golang.org/protobuf/reflect/protoreflect"
 
@@ -12,7 +12,7 @@ const (
 	ValTypeBool      ValType = iota
 )
 
-func createValType(t protoreflect.Kind) ValType {
+func CreateValType(t protoreflect.Kind) ValType {
 	switch t { //nolint: exhaustive // not need
 	case protoreflect.StringKind:
 		return ValTypeString

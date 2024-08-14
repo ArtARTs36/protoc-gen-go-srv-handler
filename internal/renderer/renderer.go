@@ -1,8 +1,10 @@
-package internal
+package renderer
 
 import (
 	"html/template"
 	"io"
+
+	"github.com/artarts36/protoc-gen-go-srv-handler/internal/entity"
 
 	"github.com/artarts36/protoc-gen-go-srv-handler/templates"
 )
@@ -26,31 +28,31 @@ func NewRenderer() (*Renderer, error) {
 	return rend, nil
 }
 
-func (r *Renderer) RenderService(w io.Writer, srv *Service) error {
+func (r *Renderer) RenderService(w io.Writer, srv *entity.Service) error {
 	return r.templates.service.ExecuteTemplate(w, "service.template", map[string]interface{}{
 		"Service": srv,
 	})
 }
 
-func (r *Renderer) RenderServiceTest(w io.Writer, srv *Service) error {
+func (r *Renderer) RenderServiceTest(w io.Writer, srv *entity.Service) error {
 	return r.templates.service.ExecuteTemplate(w, "service_test.template", map[string]interface{}{
 		"Service": srv,
 	})
 }
 
-func (r *Renderer) RenderHandler(w io.Writer, srv *Service, hand *Handler, params RenderHandlerParams) error {
+func (r *Renderer) RenderHandler(w io.Writer, hand *entity.Handler, params RenderHandlerParams) error {
 	return r.templates.service.ExecuteTemplate(w, "handler.template", map[string]interface{}{
-		"Service": srv,
+		"Service": hand.Service,
 		"Handler": hand,
 		"Params":  params,
 	})
 }
 
 type RenderHandlerParams struct {
-	RequestValidator RequestValidator
+	RequestValidator entity.RequestValidator
 }
 
-func (r *Renderer) RenderHandlerTest(w io.Writer, hand *Handler, params RenderHandlerParams) error {
+func (r *Renderer) RenderHandlerTest(w io.Writer, hand *entity.Handler, params RenderHandlerParams) error {
 	return r.templates.service.ExecuteTemplate(w, "handler_test.template", map[string]interface{}{
 		"Service": hand.Service,
 		"Handler": hand,
