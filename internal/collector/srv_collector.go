@@ -17,13 +17,6 @@ func NewSrvCollector() *SrvCollector {
 	return &SrvCollector{}
 }
 
-type CollectOpts struct {
-	SrvNaming         options.SrvNaming
-	PkgNaming         options.PkgNaming
-	HandlerFileNaming options.HandlerFileNaming
-	RequestValidator  entity.RequestValidator
-}
-
 type handlerFileNames struct {
 	selected      string
 	asIs          string
@@ -89,20 +82,7 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*entity.S
 				},
 			}
 
-			for _, field := range method.Input.Fields {
-				prop := &entity.MessageProperty{
-					GoName:   field.GoName,
-					Type:     entity.CreateValType(field.Desc.Kind()),
-					Required: !field.Desc.HasOptionalKeyword(),
-					Optional: field.Desc.HasOptionalKeyword(),
-				}
-
-				inputMsg.Properties.All = append(inputMsg.Properties.All, prop)
-				if prop.Required {
-					inputMsg.Properties.Required = append(inputMsg.Properties.Required, prop)
-				}
-			}
-
+			c.fillProperties(inputMsg, method.Input.Fields)
 			c.setMessageValidateableFields(inputMsg, opts)
 
 			handler := &entity.Handler{
@@ -121,6 +101,22 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*entity.S
 	}
 
 	return services, nil
+}
+
+func (*SrvCollector) fillProperties(msg *entity.Message, fields []*protogen.Field) {
+	for _, field := range fields {
+		prop := &entity.MessageProperty{
+			GoName:   field.GoName,
+			Type:     entity.CreateValType(field.Desc.Kind()),
+			Required: !field.Desc.HasOptionalKeyword(),
+			Optional: field.Desc.HasOptionalKeyword(),
+		}
+
+		msg.Properties.All = append(msg.Properties.All, prop)
+		if prop.Required {
+			msg.Properties.Required = append(msg.Properties.Required, prop)
+		}
+	}
 }
 
 func (*SrvCollector) generatePackageName(srv *protogen.Service, opts CollectOpts) string {
