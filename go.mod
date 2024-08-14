@@ -1,8 +1,9 @@
 module github.com/artarts36/protoc-gen-go-srv-handler
 
-go 1.16
+go 1.21
 
-require (
-	google.golang.org/grpc v1.27.0
-	google.golang.org/protobuf v1.25.0
-)
+toolchain go1.21.10
+
+require google.golang.org/protobuf v1.34.2
+
+require github.com/google/go-cmp v0.6.0 // indirect

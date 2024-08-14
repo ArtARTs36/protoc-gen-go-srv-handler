@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"google.golang.org/protobuf/types/pluginpb"
+
 	"github.com/artarts36/protoc-gen-go-srv-handler/internal"
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -27,13 +29,20 @@ func main() {
 	)
 	requestValidatorVal := flags.String(
 		"request_validator",
-		string(internal.HandlerFileNamingAsIs),
+		string(internal.RequestValidatorTypeNo),
 		"Request validator: `no`, `ozzo`",
+	)
+	requestValidatorFieldsVal := flags.String(
+		"request_validator_fields",
+		string(internal.RequestValidatorFieldsNonOptional),
+		"Request validator fields: `non_optional`",
 	)
 
 	protogen.Options{
 		ParamFunc: flags.Set,
 	}.Run(func(gen *protogen.Plugin) error {
+		gen.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
+
 		if *outDir == "" {
 			return fmt.Errorf("out_dir is required, set --go-srv-handler_opt=out_dir=./dir")
 		}
@@ -42,6 +51,7 @@ func main() {
 		srvNaming := internal.CreateSrvNaming(*srvNamingVal)
 		handlerFileNaming := internal.CreateHandlerFileNaming(*handlerFileNamingVal)
 		reqValidator := internal.CreateRequestValidator(*requestValidatorVal)
+		reqValidatorFields := internal.CreateRequestValidatorFields(*requestValidatorFieldsVal)
 
 		renderer, err := internal.NewRenderer()
 		if err != nil {
@@ -62,7 +72,10 @@ func main() {
 			srvCollector:      internal.NewSrvCollector(),
 			renderer:          renderer,
 			srvNaming:         srvNaming,
-			reqValidator:      reqValidator,
+			reqValidator: internal.RequestValidator{
+				Type:   reqValidator,
+				Fields: reqValidatorFields,
+			},
 		}
 
 		for _, f := range gen.Files {
@@ -96,6 +109,7 @@ func (c *command) gen(gen *protogen.Plugin, file *protogen.File) error {
 		PkgNaming:         c.pkgNaming,
 		SrvNaming:         c.srvNaming,
 		HandlerFileNaming: c.handlerFileNaming,
+		RequestValidator:  c.reqValidator,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to collect services: %w", err)
@@ -157,7 +171,9 @@ func (c *command) genHandlers(gen *protogen.Plugin, file *protogen.File, srv *in
 func (c *command) genHandlerTest(gen *protogen.Plugin, file *protogen.File, handler *internal.Handler) error {
 	handlerTestGenFile := gen.NewGeneratedFile(handler.TestFileName(), file.GoImportPath)
 	if !c.skipFile(handler.TestFileName()) {
-		err := c.renderer.RenderHandlerTest(handlerTestGenFile, handler)
+		err := c.renderer.RenderHandlerTest(handlerTestGenFile, handler, internal.RenderHandlerParams{
+			RequestValidator: c.reqValidator,
+		})
 		if err != nil {
 			return fmt.Errorf("failed rendering handler test: %w", err)
 		}

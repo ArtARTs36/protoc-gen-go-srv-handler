@@ -1,16 +1,31 @@
 package internal
 
-type RequestValidator string
+type RequestValidatorType string
 
 const (
-	RequestValidatorNo   = RequestValidator("no")
-	RequestValidatorOzzo = RequestValidator("ozzo")
+	RequestValidatorTypeNo   = RequestValidatorType("no")
+	RequestValidatorTypeOzzo = RequestValidatorType("ozzo")
 )
 
-func CreateRequestValidator(val string) RequestValidator {
-	if val == string(RequestValidatorOzzo) {
-		return RequestValidatorOzzo
+type RequestValidatorFields string
+
+const (
+	RequestValidatorFieldsNonOptional = RequestValidatorFields("non_optional")
+)
+
+type RequestValidator struct {
+	Type   RequestValidatorType
+	Fields RequestValidatorFields
+}
+
+func CreateRequestValidator(val string) RequestValidatorType {
+	if val == string(RequestValidatorTypeOzzo) {
+		return RequestValidatorTypeOzzo
 	}
 
-	return RequestValidatorNo
+	return RequestValidatorTypeNo
+}
+
+func CreateRequestValidatorFields(_ string) RequestValidatorFields {
+	return RequestValidatorFieldsNonOptional
 }

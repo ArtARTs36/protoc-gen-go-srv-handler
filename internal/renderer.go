@@ -50,9 +50,10 @@ type RenderHandlerParams struct {
 	RequestValidator RequestValidator
 }
 
-func (r *Renderer) RenderHandlerTest(w io.Writer, hand *Handler) error {
+func (r *Renderer) RenderHandlerTest(w io.Writer, hand *Handler, params RenderHandlerParams) error {
 	return r.templates.service.ExecuteTemplate(w, "handler_test.template", map[string]interface{}{
 		"Service": hand.Service,
 		"Handler": hand,
+		"Params":  params,
 	})
 }

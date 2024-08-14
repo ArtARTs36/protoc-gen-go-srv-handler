@@ -17,14 +17,16 @@ type Message struct {
 }
 
 type MessageProperties struct {
-	All      []*MessageProperty
-	Required []*MessageProperty
+	All          []*MessageProperty
+	Required     []*MessageProperty
+	Validateable []*MessageProperty
 }
 
 type MessageProperty struct {
 	GoName   string
 	Type     ValType
 	Required bool
+	Optional bool
 }
 
 func (p *MessageProperty) ExampleValue() string {

@@ -11,7 +11,8 @@ test:
         --go-srv-handler_opt=gen_tests=true \
         --go-srv-handler_opt=handler_file_naming=without_domain \
         --go-srv-handler_opt=request_validator=ozzo \
-        userapi/*.proto
+        --go-srv-handler_opt=request_validator_fields=all \
+        example/*.proto
 
 lint:
 	golangci-lint run --fix

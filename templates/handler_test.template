@@ -5,6 +5,7 @@ import (
 
     "github.com/stretchr/testify/assert"
     "github.com/stretchr/testify/require"
+    "google.golang.org/protobuf/proto"
 
     {{if .Service.APIImportPackage.AliasEqualsLastPackage}}{{ else }}{{.Service.APIImportPackage.Alias}} {{ end }}"{{.Service.APIImportPackage.FullName}}"
 )
@@ -12,7 +13,7 @@ import (
 func Test{{.Handler.MethodName }}(t *testing.T) {
     tEnv := newTestEnv()
 
-    resp, err := tEnv.service.{{.Handler.MethodName }}(tEnv.ctx, &{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }}{ {{ range .Handler.InputMsg.Properties.Required }}{{ if ne .Type 0 }}
+    resp, err := tEnv.service.{{.Handler.MethodName }}(tEnv.ctx, &{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsgStructName }}{ {{ range .Handler.InputMsg.Properties.Validateable }}{{ if ne .Type 0 }}
         {{ .GoName }}: {{ if eq .Type 1 }}"{{ .ExampleValue }}"{{ else }}{{ .ExampleValue }}{{ end }},{{ end }}
 {{ end }}})
     require.NoError(t, err)

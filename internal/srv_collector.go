@@ -18,6 +18,7 @@ type CollectOpts struct {
 	SrvNaming         SrvNaming
 	PkgNaming         PkgNaming
 	HandlerFileNaming HandlerFileNaming
+	RequestValidator  RequestValidator
 }
 
 type handlerFileNames struct {
@@ -77,7 +78,7 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 
 			handlersByFiles[names.selected] = names
 
-			inputMsg := Message{
+			inputMsg := &Message{
 				Name: string(method.Input.Desc.Name()),
 				Properties: MessageProperties{
 					All:      make([]*MessageProperty, 0),
@@ -90,6 +91,7 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 					GoName:   field.GoName,
 					Type:     createValType(field.Desc.Kind()),
 					Required: !field.Desc.HasOptionalKeyword(),
+					Optional: field.Desc.HasOptionalKeyword(),
 				}
 
 				inputMsg.Properties.All = append(inputMsg.Properties.All, prop)
@@ -98,11 +100,13 @@ func (c *SrvCollector) Collect(file *protogen.File, opts CollectOpts) (*Services
 				}
 			}
 
+			c.setMessageValidateableFields(inputMsg, opts)
+
 			handler := &Handler{
 				Filename:            names.selected,
 				MethodName:          method.GoName,
 				InputMsgStructName:  string(method.Input.Desc.Name()),
-				InputMsg:            inputMsg,
+				InputMsg:            *inputMsg,
 				OutputMsgStructName: string(method.Output.Desc.Name()),
 				Service:             srv,
 			}
@@ -158,4 +162,10 @@ func (*SrvCollector) generateHandlerFilename(
 	}
 
 	return names
+}
+
+func (*SrvCollector) setMessageValidateableFields(msg *Message, opts CollectOpts) {
+	if opts.RequestValidator.Type != RequestValidatorTypeNo {
+		msg.Properties.Validateable = msg.Properties.Required
+	}
 }

@@ -3,7 +3,7 @@ package {{.Service.PackageName}}
 import (
     "context"
 
-    {{if eq .Params.RequestValidator "ozzo"}}validation "github.com/go-ozzo/ozzo-validation/v4"{{end}}
+    {{if eq .Params.RequestValidator.Type "ozzo"}}validation "github.com/go-ozzo/ozzo-validation/v4"{{end}}
     "google.golang.org/grpc/codes"
     "google.golang.org/grpc/status"
 
@@ -13,7 +13,7 @@ import (
 func (srv *{{.Service.Name}}) {{.Handler.MethodName }} (
     ctx context.Context,
     req *{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsg.Name }},
-) (*{{.Service.APIImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}, error) { {{if ne .Params.RequestValidator "no"}}
+) (*{{.Service.APIImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}, error) { {{if ne .Params.RequestValidator.Type "no"}}
     if err := srv.validate{{.Handler.MethodName }}Request(req); err != nil {
         return nil, status.Error(codes.InvalidArgument, err.Error())
     }
@@ -21,9 +21,9 @@ func (srv *{{.Service.Name}}) {{.Handler.MethodName }} (
     return &{{.Service.APIImportPackage.Alias}}.{{.Handler.OutputMsgStructName }}{}, nil
 }
 
-{{if eq .Params.RequestValidator "ozzo"}}
+{{if eq .Params.RequestValidator.Type "ozzo"}}
 func (srv *{{.Service.Name}}) validate{{.Handler.MethodName }}Request(req *{{.Service.APIImportPackage.Alias}}.{{.Handler.InputMsg.Name }}) error {
-	return validation.Errors{ {{ range .Handler.InputMsg.Properties.Required }}{{ if ne .Type 0 }}
+	return validation.Errors{ {{ range .Handler.InputMsg.Properties.Validateable }}{{ if ne .Type 0 }}
 	    "{{ .GoName }}" : validation.Validate(req.{{ .GoName }}, validation.Required),{{ end }}{{ end }}
 	}.Filter()
 }
