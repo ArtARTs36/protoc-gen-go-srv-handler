@@ -5,43 +5,41 @@ import (
 	"io"
 
 	"github.com/artarts36/protoc-gen-go-srv-handler/internal/entity"
-
+	"github.com/artarts36/protoc-gen-go-srv-handler/internal/options"
 	"github.com/artarts36/protoc-gen-go-srv-handler/templates"
 )
 
 type Renderer struct {
-	templates struct {
-		service *template.Template
-	}
+	templates *template.Template
 }
 
 func NewRenderer() (*Renderer, error) {
 	rend := &Renderer{}
 
-	srvTmpl, err := template.ParseFS(templates.FS, "*.template")
+	tmpl, err := template.ParseFS(templates.FS, "*.template")
 	if err != nil {
 		return nil, err
 	}
 
-	rend.templates.service = srvTmpl
+	rend.templates = tmpl
 
 	return rend, nil
 }
 
 func (r *Renderer) RenderService(w io.Writer, srv *entity.Service) error {
-	return r.templates.service.ExecuteTemplate(w, "service.template", map[string]interface{}{
+	return r.templates.ExecuteTemplate(w, "service.template", map[string]interface{}{
 		"Service": srv,
 	})
 }
 
 func (r *Renderer) RenderServiceTest(w io.Writer, srv *entity.Service) error {
-	return r.templates.service.ExecuteTemplate(w, "service_test.template", map[string]interface{}{
+	return r.templates.ExecuteTemplate(w, "service_test.template", map[string]interface{}{
 		"Service": srv,
 	})
 }
 
 func (r *Renderer) RenderHandler(w io.Writer, hand *entity.Handler, params RenderHandlerParams) error {
-	return r.templates.service.ExecuteTemplate(w, "handler.template", map[string]interface{}{
+	return r.templates.ExecuteTemplate(w, "handler.template", map[string]interface{}{
 		"Service": hand.Service,
 		"Handler": hand,
 		"Params":  params,
@@ -49,11 +47,11 @@ func (r *Renderer) RenderHandler(w io.Writer, hand *entity.Handler, params Rende
 }
 
 type RenderHandlerParams struct {
-	RequestValidator entity.RequestValidator
+	RequestValidator options.RequestValidator
 }
 
 func (r *Renderer) RenderHandlerTest(w io.Writer, hand *entity.Handler, params RenderHandlerParams) error {
-	return r.templates.service.ExecuteTemplate(w, "handler_test.template", map[string]interface{}{
+	return r.templates.ExecuteTemplate(w, "handler_test.template", map[string]interface{}{
 		"Service": hand.Service,
 		"Handler": hand,
 		"Params":  params,

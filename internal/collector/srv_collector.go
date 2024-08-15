@@ -164,7 +164,7 @@ func (*SrvCollector) generateHandlerFilename(
 }
 
 func (*SrvCollector) setMessageValidateableFields(msg *entity.Message, opts CollectOpts) {
-	if opts.RequestValidator.Type != entity.RequestValidatorTypeNo {
+	if opts.RequestValidator.Type != options.RequestValidatorTypeNo {
 		msg.Properties.Validateable = msg.Properties.Required
 	}
 }

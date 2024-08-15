@@ -4,8 +4,8 @@ import (
     "context"
 
     {{if eq .Params.RequestValidator.Type "ozzo"}}validation "github.com/go-ozzo/ozzo-validation/v4"{{end}}
-    "google.golang.org/grpc/codes"
-    "google.golang.org/grpc/status"
+{{if ne .Params.RequestValidator.Type "no"}}    "google.golang.org/grpc/codes"
+    "google.golang.org/grpc/status"{{end}}
 
     {{if .Service.APIImportPackage.AliasEqualsLastPackage}}{{ else }}{{.Service.APIImportPackage.Alias}} {{ end }}"{{.Service.APIImportPackage.FullName}}"
 )
